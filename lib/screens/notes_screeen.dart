@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/models/note.dart';
-import 'package:notes_app/screens/note_edit.dart';
+import 'package:notes_app/screens/note_add_edit.dart';
+import 'package:notes_app/screens/note_view.dart';
+import 'package:notes_app/screens/delete_note_dialog.dart';
 import 'package:notes_app/services/storage_service.dart';
 
 class NotesListScreen extends StatefulWidget {
@@ -38,7 +40,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NoteEditorScreen(note: existingNote),
+        builder: (context) => NoteAddEditScreen(note: existingNote),
       ),
     );
 
@@ -56,29 +58,32 @@ class _NotesListScreenState extends State<NotesListScreen> {
   }
 
   void _confirmDelete(Note note) {
-    showDialog(
+    showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Note'),
-        content: const Text('Are you sure you want to delete this note?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _notes.removeWhere((n) => n.id == note.id);
-              });
-              _saveAndRefresh();
-              Navigator.pop(context);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      builder: (context) => const DeleteNoteDialog(),
+    ).then((confirmed) {
+      if (confirmed != true) return;
+      setState(() => _notes.removeWhere((n) => n.id == note.id));
+      _saveAndRefresh();
+    });
+  }
+
+  Future<void> _viewNote(Note note) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NoteViewScreen(note: note)),
     );
+
+    if (result is Note) {
+      final index = _notes.indexWhere((item) => item.id == result.id);
+      if (index != -1) {
+        setState(() => _notes[index] = result);
+        await _saveAndRefresh();
+      }
+    } else if (result == true) {
+      setState(() => _notes.removeWhere((item) => item.id == note.id));
+      await _saveAndRefresh();
+    }
   }
 
   @override
@@ -150,8 +155,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                     fontSize: 12,
                                   ),
                                 ),
-                                onTap: () =>
-                                    _addOrUpdateNote(existingNote: note),
+                                onTap: () => _viewNote(note),
                               ),
                             );
                           },

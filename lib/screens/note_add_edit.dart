@@ -2,16 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/models/note.dart';
 
-class NoteEditorScreen extends StatefulWidget {
+class NoteAddEditScreen extends StatefulWidget {
   final Note? note;
 
-  const NoteEditorScreen({super.key, this.note});
+  const NoteAddEditScreen({super.key, this.note});
 
   @override
-  State<NoteEditorScreen> createState() => _NoteEditorScreenState();
+  State<NoteAddEditScreen> createState() => _NoteAddEditScreenState();
 }
 
-class _NoteEditorScreenState extends State<NoteEditorScreen> {
+class _NoteAddEditScreenState extends State<NoteAddEditScreen> {
   late TextEditingController _titleController;
   late TextEditingController _bodyController;
 
